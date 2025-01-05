@@ -39,7 +39,7 @@ def generate_project_summary(project_dir):
     summaryignore_patterns = read_summaryignore(project_dir)
     print(f"summaryignore_patterns: {summaryignore_patterns}")
     additional_ignore_patterns = ['generate_project_summary.py', '.summaryignore',
-                                  f'{project_name}_project_summary.txt', '.git']
+                                  f'{project_name}_project_summary.txt', '.git', 'Cargo.lock', 'target', '.idea']
 
     file_contents_section = "\n## File Contents\n\n"
 
