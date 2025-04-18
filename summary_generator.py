@@ -29,7 +29,7 @@ def read_file_contents(file_path):
 
 
 def read_ignore_file(project_dir, filename):
-    """無視ファイル（.gitignoreまたは.summaryignore）からパターンを読み込む"""
+    """無視ファイル（.gitignoreまたは.summary_ignore）からパターンを読み込む"""
     ignore_path = os.path.join(project_dir, filename)
     if os.path.exists(ignore_path):
         try:
@@ -53,12 +53,14 @@ def read_gitignore(project_dir):
     return read_ignore_file(project_dir, '.gitignore')
 
 
-def read_summaryignore(project_dir):
-    """.summaryignoreからパターンを読み込む"""
-    return read_ignore_file(project_dir, '.summaryignore')
+def read_summary_ignore():
+    """.summary_ignoreからパターンを読み込む
+    注: プロジェクトディレクトリではなく、main.pyを実行したディレクトリの.summary_ignoreを使用"""
+    # main.pyを実行したディレクトリ（カレントディレクトリ）の.summary_ignoreを読み込む
+    return read_ignore_file(os.getcwd(), '.summary_ignore')
 
 
-def is_ignored(path, project_dir, gitignore_patterns, summaryignore_patterns, additional_ignore_patterns):
+def is_ignored(path, project_dir, gitignore_patterns, summary_ignore_patterns, additional_ignore_patterns):
     """パスが無視すべきかどうかを確認"""
     if os.path.isabs(path):
         # パスが絶対パスの場合、共通の接頭辞をチェック
@@ -69,7 +71,7 @@ def is_ignored(path, project_dir, gitignore_patterns, summaryignore_patterns, ad
         # すでに相対パスの場合
         relative_path = path
 
-    for pattern in gitignore_patterns + summaryignore_patterns + additional_ignore_patterns:
+    for pattern in gitignore_patterns + summary_ignore_patterns + additional_ignore_patterns:
         pattern = f"*{pattern}*"
         if fnmatch.fnmatch(relative_path, pattern) or fnmatch.fnmatch(f'{os.sep}{relative_path}', pattern):
             return True
@@ -90,10 +92,10 @@ def generate_project_summary(project_dir, output_file=None):
         gitignore_patterns = read_gitignore(project_dir)
         print(f"gitignore_patterns: {gitignore_patterns}")
 
-        summaryignore_patterns = read_summaryignore(project_dir)
-        print(f"summaryignore_patterns: {summaryignore_patterns}")
+        summary_ignore_patterns = read_summary_ignore()
+        print(f"summary_ignore_patterns: {summary_ignore_patterns}")
 
-        additional_ignore_patterns = ['generate_project_summary.py', '.summaryignore',
+        additional_ignore_patterns = ['generate_project_summary.py', '.summary_ignore',
                                       f'{project_name}_project_summary.txt', '.git',
                                       'project_summary_history.txt']
 
@@ -104,7 +106,7 @@ def generate_project_summary(project_dir, output_file=None):
             indent = '  ' * level
             relative_path = os.path.relpath(root, project_dir)
 
-            if is_ignored(relative_path, project_dir, gitignore_patterns, summaryignore_patterns,
+            if is_ignored(relative_path, project_dir, gitignore_patterns, summary_ignore_patterns,
                           additional_ignore_patterns):
                 return
 
@@ -123,11 +125,11 @@ def generate_project_summary(project_dir, output_file=None):
             for item in items:
                 item_path = os.path.join(root, item)
                 if os.path.isdir(item_path):
-                    if not is_ignored(item_path, project_dir, gitignore_patterns, summaryignore_patterns,
+                    if not is_ignored(item_path, project_dir, gitignore_patterns, summary_ignore_patterns,
                                       additional_ignore_patterns):
                         traverse_directory(item_path, level + 1)
                 else:
-                    if not is_ignored(item_path, project_dir, gitignore_patterns, summaryignore_patterns,
+                    if not is_ignored(item_path, project_dir, gitignore_patterns, summary_ignore_patterns,
                                       additional_ignore_patterns):
                         if not is_binary(item_path):
                             summary += f'{subindent}- {item}\n'
